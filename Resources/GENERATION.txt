@@ -1,0 +1,248 @@
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
+#include <iostream>
+#include <fstream>
+#include <string>
+
+char IntToChar(int a)
+{
+	a = a % 10;
+
+	return a + 48;
+}
+
+void generateMap(char* Map, int H, int W, int nbBombs)
+{
+	int rand_x;
+
+	for (int i = 0; i < H * W; i++)
+	{
+		rand_x = rand() % 100;
+
+		if (rand_x >= 100 * nbBombs / (H * W - i))
+		{
+			*(Map + i) = '0';
+		}
+
+		else
+		{
+			*(Map + i) = 'B';
+			nbBombs = nbBombs - 1;
+		}
+	}
+
+	if (nbBombs != 0)
+	{
+		*(Map + H * W - 1) = 'B';
+	}
+
+	int prxBmb;
+
+	//MIDDLE
+
+	for (int i = 1; i < H - 1; i++)
+	{
+		for (int j = 1; j < W - 1; j++)
+		{
+			if (*(Map + i * W + j) != 'B')
+			{
+				prxBmb = 0;
+				for (int k = 0; k < 3; k++)
+				{
+					if (*(Map + (i - 1) * W + j - 1 + k) == 'B') prxBmb++;
+					if (*(Map + (i + 1) * W + j - 1 + k) == 'B') prxBmb++;
+				}
+
+				if (*(Map + i * W + j - 1) == 'B') prxBmb++;
+				if (*(Map + i * W + j + 1) == 'B') prxBmb++;
+
+				*(Map + i * W + j) = IntToChar(prxBmb);
+			}
+		}
+	}
+
+	// LEFT + RIGHT
+	
+	for (int j = 1; j < W - 1; j++)
+	{
+		if (*(Map + j) != 'B')
+		{
+			prxBmb = 0;
+			if (*(Map + j - 1) == 'B') prxBmb++;
+			if (*(Map + j + 1) == 'B') prxBmb++;
+			for (int k = 0; k < 3; k++)
+			{
+				if (*(Map + W + j - 1 + k) == 'B') prxBmb++;
+			}
+			
+			*(Map + j) = IntToChar(prxBmb);
+		}
+
+		if (*(Map + (H - 1) * W + j) != 'B')
+		{
+			prxBmb = 0;
+			if (*(Map + (H - 1) * W + j - 1) == 'B') prxBmb++;
+			if (*(Map + (H - 1) * W + j + 1) == 'B') prxBmb++;
+			for (int k = 0; k < 3; k++)
+			{
+				if (*(Map + (H - 2) * W + j - 1 + k) == 'B') prxBmb++;
+			}
+
+			*(Map + (H-1) * W + j) = IntToChar(prxBmb);
+		}
+	}
+
+	// UP + DOWN
+	
+	for (int i = 1; i < H - 1; i++)
+	{
+		if (*(Map + W * i) != 'B')
+		{
+			prxBmb = 0;
+			if (*(Map + W * (i - 1)) == 'B') prxBmb++;
+			if (*(Map + W * (i + 1)) == 'B') prxBmb++;
+			for (int k = 0; k < 3; k++)
+			{
+				if (*(Map + (i - 1 + k) * W + 1) == 'B') prxBmb++;
+			}
+
+			*(Map + W * i) = IntToChar(prxBmb);
+		}
+
+		if (*(Map + W * i + W - 1) != 'B')
+		{
+			prxBmb = 0;
+			if (*(Map + W * (i - 1) + W - 1) == 'B') prxBmb++;
+			if (*(Map + W * (i + 1) + W - 1) == 'B') prxBmb++;
+			for (int k = 0; k < 3; k++)
+			{
+				if (*(Map + W * (i - 1 + k) + W - 2) == 'B') prxBmb++;
+			}
+
+			*(Map + W * i + W - 1) = IntToChar(prxBmb);
+		}
+	}
+
+	// CORNER
+	
+	if (*(Map) != 'B')
+	{
+		prxBmb = 0;
+
+		if (*(Map + 1) == 'B') prxBmb++;
+		if (*(Map + W) == 'B') prxBmb++;
+		if (*(Map + W + 1) == 'B') prxBmb++;
+		*(Map) = IntToChar(prxBmb);
+	}
+
+	if (*(Map + W - 1) != 'B')
+	{
+		prxBmb = 0;
+
+		if (*(Map + W - 2) == 'B') prxBmb++;
+		if (*(Map + 2 * W - 1) == 'B') prxBmb++;
+		if (*(Map + 2 * W - 2) == 'B') prxBmb++;
+		*(Map + W - 1) = IntToChar(prxBmb);
+	}
+
+	if (*(Map + (H - 1) * W) != 'B')
+	{
+		prxBmb = 0;
+
+		if (*(Map + (H - 1) * W + 1) == 'B') prxBmb++;
+		if (*(Map + (H - 2) * W + 1) == 'B') prxBmb++;
+		if (*(Map + (H - 2) * W) == 'B') prxBmb++;
+		*(Map + (H - 1) * W) = IntToChar(prxBmb);
+	}
+
+	if (*(Map + H * W - 1) != 'B')
+	{
+		prxBmb = 0;
+
+		if (*(Map + H * W - 2) == 'B') prxBmb++;
+		if (*(Map + (H - 1) * W - 1) == 'B') prxBmb++;
+		if (*(Map + (H - 1) * W - 2) == 'B') prxBmb++;
+
+		*(Map + H * W - 1) = IntToChar(prxBmb);
+	}
+}
+
+void printMap(char* Map, int H, int W, std::ofstream* file)
+{
+	for (int i = 0; i < H; i++)
+	{
+		for (int j = 0; j < W; j++)
+			*file << *(Map + i * W + j) << " ";
+		*file << '\n';
+	}
+}
+
+int CountBombs(char* Map, int H, int W)
+{
+	int rez = 0;
+	for (int i = 0; i < H * W; i++)
+	{
+		if (*(Map + i) == 'B') rez++;
+	}
+
+	return rez;
+}
+
+void CheckBias(char* Map, int H, int W, std::ofstream* file, float* S1, float* S2)
+{
+	int upSideBmbs = 0;
+	int downSideBmbs = 0;
+
+	for (int i = 0; i < int(H * W / 2); i++)
+	{
+		if (*(Map + i) == 'B') upSideBmbs++;
+	}
+
+	for (int i = int(H * W / 2); i < H * W; i++)
+	{
+		if (*(Map + i) == 'B') downSideBmbs++;
+	}
+
+	*file << "Upper bombs: " << upSideBmbs << " Lower bombs: " << downSideBmbs << '\n';
+
+	*S1 += upSideBmbs;
+	*S2 += downSideBmbs;
+}
+
+int main()
+{
+	char* Map;
+	int H = 10, W = 10;
+	int mistakes = 0;
+	int Cases = 100;
+	int Bombs = 99;
+
+	float UpB = 0, DownB = 0;
+
+	std::ofstream outFile;
+
+	outFile.open("output.txt");
+
+	Map = new char[H * W];
+
+	srand(time(NULL));
+
+	for (int i = 0; i < Cases; i++)
+	{
+		outFile << "Map number " << i << ":\n";
+		generateMap(Map, H, W, Bombs);
+		printMap(Map, H, W, &outFile);
+		CheckBias(Map, H, W, &outFile, &UpB, &DownB);
+		
+	}
+
+	outFile << "\nAverage upper bombs:" << 1.f * UpB / Cases << " ; Average lower bombs: " << 1.f * DownB / Cases << '\n';
+
+	std::cin.get();
+
+	outFile.close();
+
+	delete[] Map;
+}
